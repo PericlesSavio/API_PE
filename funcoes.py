@@ -156,8 +156,62 @@ def partidas_2(competicao = 0, ano = 0, grupo = 0, fase = 0, clube = 0):
 
     return mata_mata2
 
+def classificacao(competicao = 0, ano = 0, grupo = 0, fase = 0, vitoria = 3, empate_sem_gols = 1, empate_com_gols = 1, clube = 0):
+    clasf1 = pd.DataFrame({
+        'id_jogo': lista_jogos['id_jogo'],
+        'ano': lista_jogos['ano'],
+        'competicao': lista_jogos['competicao'],
+        'grupo': lista_jogos['grupo'],
+        'fase': lista_jogos['fase'],
+        'estadio': lista_jogos['local'],
+        'clube': lista_jogos['mandante'],
+        'pts': 0,
+        'j': lista_jogos['j'].astype(int),
+        'v': lista_jogos['v'].astype(int),
+        'e': lista_jogos['e'].astype(int),
+        'd': lista_jogos['d'].astype(int),
+        'gp': lista_jogos['gp'].astype(int),
+        'gc': lista_jogos['gc'].astype(int),
+        'saldo': lista_jogos['gp'].astype(int) - lista_jogos['gc'].astype(int),
+    })
+    clasf2 = pd.DataFrame({
+        'id_jogo': lista_jogos['id_jogo'],
+        'ano': lista_jogos['ano'],
+        'competicao': lista_jogos['competicao'],
+        'grupo': lista_jogos['grupo'],
+        'fase': lista_jogos['fase'],
+        'estadio': lista_jogos['local'],
+        'clube': lista_jogos['visitante'],
+        'pts': 0,
+        'j': lista_jogos['j'].astype(int),
+        'v': lista_jogos['v'].astype(int),
+        'e': lista_jogos['e'].astype(int),
+        'd': lista_jogos['d'].astype(int),
+        'gp': lista_jogos['gc'].astype(int),
+        'gc': lista_jogos['gp'].astype(int),
+        'saldo': lista_jogos['gc'].astype(int) - lista_jogos['gp'].astype(int),
+    }) 
 
+    classificacao = pd.concat([clasf1, clasf2])
+    
+    classificacao.loc[classificacao['gp'] > classificacao['gc'], 'pts'] = vitoria
+    classificacao.loc[classificacao['gp'] < classificacao['gc'], 'pts'] = 0
+    classificacao.loc[(classificacao['gp'] == classificacao['gc']) & (classificacao['gp'] + classificacao['gc'] == 0), 'pts'] = empate_sem_gols
+    classificacao.loc[(classificacao['gp'] == classificacao['gc']) & (classificacao['gp'] + classificacao['gc'] > 0), 'pts'] = empate_com_gols
+    
+    classificacao = classificacao[classificacao['competicao'] == competicao] if competicao != 0 else classificacao
+    classificacao = classificacao[classificacao['ano'] == ano] if ano != 0 else classificacao
+    classificacao = classificacao[classificacao['grupo'] == grupo] if grupo != 0 else classificacao
+    classificacao = classificacao[classificacao['fase'] == fase] if fase != 0 else classificacao
+    classificacao = classificacao[classificacao['clube'].str.contains(clube)] if clube != 0 else classificacao
+    classificacao = classificacao.sort_values(['pts', 'saldo'], ascending = [False, False])
+    classificacao = classificacao.groupby(['clube']).sum().reset_index().sort_values(['pts', 'v', 'saldo', 'gp'], ascending = [False, False, False, False])
+    classificacao = classificacao.drop(columns=['ano']).reset_index().drop('index', axis=1)
+    
+    classificacao.insert(0, 'pos', classificacao.index + 1)
+    classificacao = pd.merge(left=classificacao, right=lista_clubes, left_on='clube', right_on='clube', how='left').drop(['completo', 'fundacao', 'cidade', 'estado'], axis=1)
 
+    return classificacao
 
 
 
