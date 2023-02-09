@@ -91,6 +91,17 @@ def partidas_1(competicao = 0, ano = 0, grupo = 0, fase = 0, rodada = 0, id_jogo
 
     return partidas
 
+def partidas_1_completo(competicao = 0, ano = 0, grupo = 0, fase = 0, rodada = 0, id_jogo = 0):
+    partidas = partidas_1(competicao = 0, ano = 0, grupo = 0, fase = 0, rodada = 0, id_jogo = 0).astype(str).to_dict('records')
+    dados_gols = lista_gols.where(pd.notnull(lista_gols), '')
+
+    for i in range(0, len(partidas)):
+        partidas[i]['dados_partida'] = lista_gols[lista_gols['id_jogo'] == partidas[i]['id_jogo']].to_dict('records')
+    return partidas
+
+
+
+
 def partidas_2(competicao = 0, ano = 0, grupo = 0, fase = 0, clube = 0):
     jogos = pd.merge(left = lista_jogos, right = lista_observacoes, left_on='id_jogo', right_on='id_jogo', how='left')
 
