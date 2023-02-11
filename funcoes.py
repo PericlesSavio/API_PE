@@ -166,21 +166,29 @@ def classificacao(competicao = 0, ano = 0, grupo = 0, fase = 0, vitoria = 3, emp
 
 
 def participacoes(ano, competicao):
-    lista_jogos = lista_partidas[lista_partidas['PARTIDA_COMPETICAO'] == competicao]
-    lista_mandantes = lista_partidas[['PARTIDA_MANDANTE', 'PARTIDA_ANO']].groupby(['PARTIDA_MANDANTE', 'PARTIDA_ANO']).sum().reset_index()
-    lista_mandantes.columns = ['CLUBE', 'PARTIDA_ANO']
-    lista_visitantes = lista_jogos[['PARTIDA_VISITANTE', 'PARTIDA_ANO']].groupby(['PARTIDA_VISITANTE', 'PARTIDA_ANO']).sum().reset_index()
-    lista_visitantes.columns = ['CLUBE', 'PARTIDA_ANO']
-    participacoes = pd.concat([lista_mandantes, lista_visitantes]).groupby(['CLUBE', 'PARTIDA_ANO']).sum().reset_index()
-    clubes_participacoes = participacoes[participacoes['PARTIDA_ANO'] <= ano]
-    participacoes = participacoes[participacoes['PARTIDA_ANO'] == ano]
+
+    lista_mandantes = lista_partidas[['PARTIDA_MANDANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']].groupby(['PARTIDA_MANDANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']).sum().reset_index()
+    lista_mandantes.columns = ['CLUBE', 'ANO', 'COMPETICAO']
+    lista_visitantes = lista_partidas[['PARTIDA_VISITANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']].groupby(['PARTIDA_VISITANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']).sum().reset_index()
+    lista_visitantes.columns = ['CLUBE', 'ANO', 'COMPETICAO']
+    participacoes = pd.concat([lista_mandantes, lista_visitantes])
+    participacoes = participacoes[participacoes['COMPETICAO'] == competicao].groupby(['CLUBE', 'ANO']).sum(numeric_only=True).reset_index()
+    clubes_participacoes = participacoes[participacoes['ANO'] <= ano]
+
     n_participacoes = pd.DataFrame(clubes_participacoes['CLUBE'].value_counts()).reset_index()
-    participacoes = pd.merge(left=participacoes, right=n_participacoes, left_on='CLUBE', right_on='index')
-    participacoes = participacoes.drop(columns=['PARTIDA_ANO', 'index'])
-    participacoes.columns = ['CLUBE', 'PARTICIPACOES']
-    participacoes = pd.merge(left=participacoes, right=lista_clubes, on='CLUBE', how='left').sort_values(['CLUBE'])
-    participacoes = pd.merge(left=participacoes, right=lista_mundanca_clube, left_on='CLUBE_NOME_COMPLETO', right_on='MUDANCA_NOME_ATUAL', how='left').fillna('')
-    return participacoes
+    n_participacoes.columns = ['CLUBE', 'PARTICIPACOES']
+
+    participantes = pd.merge(left=clubes_participacoes, right=n_participacoes, on='CLUBE', how='left')
+    participantes = participantes[participantes['ANO'] == ano]
+    participantes = participantes[['CLUBE', 'PARTICIPACOES', 'ANO']]
+
+    participantes = pd.merge(left=participantes, right=lista_clubes, on='CLUBE', how='left').sort_values(['CLUBE'])
+    participantes = pd.merge(left=participantes, right=lista_mundanca_clube, left_on='CLUBE_NOME_COMPLETO', right_on='MUDANCA_NOME_ATUAL', how='left').fillna('')
+
+
+    return participantes
+
+
 
 
 

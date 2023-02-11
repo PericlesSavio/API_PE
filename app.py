@@ -57,6 +57,7 @@ def r_classificacao_geral_ano(_competicao_, _edicao_):
 
 
 
+
 @app.route('/classificacao/<_competicao_>/<_edicao_>/<_grupo_>', methods=["GET"])
 def r_classificacao_grupo(_competicao_, _edicao_, _grupo_):
     classificacao_ = pe.classificacao(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao'],
@@ -64,11 +65,14 @@ def r_classificacao_grupo(_competicao_, _edicao_, _grupo_):
     return jsonify(classificacao_.astype(str).to_dict('records'))
 
 
+
+
 @app.route('/participacoes/<_competicao_>/<_edicao_>', methods=["GET"])
 @app.route('/participacoes/<_competicao_>/<_edicao_>/', methods=["GET"])
 def r_clubes_participantes(_competicao_, _edicao_):
-    dados_participacoes_ = pe.participacoes(_competicao_, _edicao_)
-    return jsonify(dados_participacoes_.astype(str).to_dict('records'))
+    dados_participacoes_ = pe.participacoes(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao']
+                                            , ano = int(_edicao_))
+    return jsonify(dados_participacoes_.to_dict('records'))
 
 
 
