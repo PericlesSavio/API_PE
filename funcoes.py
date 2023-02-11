@@ -3,12 +3,13 @@ import pandas as pd
 lista_partidas = pd.read_excel('dados/dados.xlsx', sheet_name='Jogos')
 lista_partidas['PARTIDA_DATA'] = pd.to_datetime(lista_partidas['PARTIDA_DATA']).dt.date
 lista_clubes = pd.read_excel('dados/dados.xlsx', sheet_name='Clubes')
-lista_campeoes = pd.read_excel('dados/dados.xlsx', sheet_name='Campeões')
-#lista_artilharia = pd.read_excel('dados/dados.xlsx', sheet_name='Artilharia')
-lista_jogadores = pd.read_excel('dados/dados.xlsx', sheet_name='Jogadores')
-lista_gols = pd.read_excel('dados/dados.xlsx', sheet_name='Artilharia')
 lista_estadios = pd.read_excel('dados/dados.xlsx', sheet_name='Estádios')
 lista_observacoes = pd.read_excel('dados/dados.xlsx', sheet_name='Observações')
+lista_jogadores = pd.read_excel('dados/dados.xlsx', sheet_name='Jogadores')
+lista_gols = pd.read_excel('dados/dados.xlsx', sheet_name='Artilharia')
+
+
+lista_campeoes = pd.read_excel('dados/dados.xlsx', sheet_name='Campeões')
 lista_colocacoes = pd.read_excel('dados/dados.xlsx', sheet_name='Posições')
 lista_mundanca_clube = pd.read_excel('dados/dados.xlsx', sheet_name='Mudanças')
 lista_competicoes = pd.read_excel('dados/dados.xlsx', sheet_name='Competições')
@@ -83,14 +84,27 @@ def partidas_1(competicao = 0, ano = 0, grupo = 0, fase = 0, rodada = 0, id_jogo
     partidas = pd.merge(left=partidas, right=lista_clubes[['CLUBE', 'CLUBE_ID']], left_on='PARTIDA_VISITANTE', right_on='CLUBE', how='left')
     partidas = partidas.drop(['CLUBE'], axis=1)
     partidas = partidas.rename(columns={'CLUBE_ID_x': 'CLUBE_MANDANTE_ID', 'CLUBE_ID_y': 'CLUBE_VISITANTE_ID'})
-    partidas = partidas.where(pd.notnull(partidas), '')   
+    partidas = pd.merge(left=partidas, right=lista_observacoes, on='PARTIDA_ID', how='left')
+
+    partidas = partidas.where(pd.notnull(partidas), '')
 
     partidas = partidas[['PARTIDA_ID', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO', 'PARTIDA_DATA', 'PARTIDA_HORARIO', 'PARTIDA_GRUPO', 'PARTIDA_FASE', 'PARTIDA_RODADA',
                         'PARTIDA_MANDANTE', 'PARTIDA_GOL_M_STR', 'PARTIDA_GOL_V_STR', 'PARTIDA_VISITANTE', 'PARTIDA_LOCAL', 'PARTIDA_CONFRONTO1', 'PARTIDA_CONFRONTO2',
-                        'ESTADIO_ID', 'CLUBE_MANDANTE_ID', 'CLUBE_VISITANTE_ID']]
+                        'ESTADIO_ID', 'CLUBE_MANDANTE_ID', 'CLUBE_VISITANTE_ID', 'PARTIDA_OBS']]
     
     partidas = partidas.rename(columns={'PARTIDA_GOL_M_STR': 'PARTIDA_MANDANTE_GOL', 'PARTIDA_GOL_V_STR': 'PARTIDA_VISITANTE_GOL'})
 
+    return partidas
+
+
+def partidas_1_completo(competicao = 0, ano = 0, grupo = 0, fase = 0, rodada = 0, id_jogo = 0):
+    partidas = partidas_1(competicao, ano, grupo, fase, rodada, id_jogo).astype(str).to_dict('records')
+    dados_gols = pd.merge(left=lista_gols, right=lista_jogadores, on='JOGADOR_ID', how='left')
+    dados_gols = dados_gols.where(pd.notnull(dados_gols), '')
+    dados_gols = dados_gols[['PARTIDA_ID', 'JOGADOR_ID', 'JOGADOR_ALCUNHA', 'JOGADOR_CLUBE', 'JOGADOR_GOL_TEMPO', 'JOGADOR_GOL_MIN', 'JOGADOR_GOL_TIPO']]
+
+    for i in range(0, len(partidas)):
+        partidas[i]['PARTIDA_DADOS'] = dados_gols[dados_gols['PARTIDA_ID'] == partidas[i]['PARTIDA_ID']].to_dict('records')
     return partidas
 
 
@@ -149,5 +163,27 @@ def classificacao(competicao = 0, ano = 0, grupo = 0, fase = 0, vitoria = 3, emp
     classificacao = pd.merge(left=classificacao, right=lista_clubes[['CLUBE', 'CLUBE_ID']], left_on='CLUBE', right_on='CLUBE', how='left') #.drop(['completo', 'fundacao', 'ESTADIO_CIDADE', 'ESTADIO_ESTADO'], axis=1)
 
     return classificacao
+
+
+def participacoes(ano, competicao):
+    lista_jogos = lista_partidas[lista_partidas['PARTIDA_COMPETICAO'] == competicao]
+    lista_mandantes = lista_partidas[['PARTIDA_MANDANTE', 'PARTIDA_ANO']].groupby(['PARTIDA_MANDANTE', 'PARTIDA_ANO']).sum().reset_index()
+    lista_mandantes.columns = ['CLUBE', 'PARTIDA_ANO']
+    lista_visitantes = lista_jogos[['PARTIDA_VISITANTE', 'PARTIDA_ANO']].groupby(['PARTIDA_VISITANTE', 'PARTIDA_ANO']).sum().reset_index()
+    lista_visitantes.columns = ['CLUBE', 'PARTIDA_ANO']
+    participacoes = pd.concat([lista_mandantes, lista_visitantes]).groupby(['CLUBE', 'PARTIDA_ANO']).sum().reset_index()
+    clubes_participacoes = participacoes[participacoes['PARTIDA_ANO'] <= ano]
+    participacoes = participacoes[participacoes['PARTIDA_ANO'] == ano]
+    n_participacoes = pd.DataFrame(clubes_participacoes['CLUBE'].value_counts()).reset_index()
+    participacoes = pd.merge(left=participacoes, right=n_participacoes, left_on='CLUBE', right_on='index')
+    participacoes = participacoes.drop(columns=['PARTIDA_ANO', 'index'])
+    participacoes.columns = ['CLUBE', 'PARTICIPACOES']
+    participacoes = pd.merge(left=participacoes, right=lista_clubes, on='CLUBE', how='left').sort_values(['CLUBE'])
+    participacoes = pd.merge(left=participacoes, right=lista_mundanca_clube, left_on='CLUBE_NOME_COMPLETO', right_on='MUDANCA_NOME_ATUAL', how='left').fillna('')
+    return participacoes
+
+
+
+
 
 
