@@ -12,10 +12,6 @@ app.config['JSON_SORT_KEYS'] = False
 
 
 @app.route("/")
-#@app.route("/ficha_jogos")
-#@app.route("/ficha_jogos/")
-#@app.route("/ficha_jogos/<_competicao_>")
-#@app.route("/ficha_jogos/<_competicao_>/")
 def index():    
     with open("README.md", "r", encoding='utf-8') as f:
         content = f.read()        
@@ -24,55 +20,48 @@ def index():
 
 
 
-@app.route('/jogos/<_competicao_>/<_edicao_>', methods=["GET"])
+@app.route('/jogos/<_competicao_>/<int:_edicao_>', methods=["GET"])
 def r_partidas(_competicao_, _edicao_):
-    partidas_ = pe.partidas_1(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao'],
-                              ano = int(_edicao_), grupo = 0, fase = 0, rodada = 0, id_jogo = 0)
-    return jsonify(partidas_.astype(str).to_dict('records'))
+    partidas_ = pe.partidas_1(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_, grupo = 0, fase = 0, rodada = 0, id_jogo = 0)
+    return jsonify(partidas_.to_dict('records'))
 
 
 
-@app.route('/ficha_jogos/<_competicao_>/<_edicao_>', methods=["GET"])
-def r_ficha_jogo(_competicao_, _edicao_):
-    partidas_ = pe.partidas_1_completo(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao'],
-                              ano = int(_edicao_), grupo = 0, fase = 0, rodada = 0, id_jogo = 0)
+@app.route('/ficha_jogos/<_competicao_>/<int:_edicao_>', methods=["GET"])
+@app.route('/ficha_jogos/<_competicao_>/<int:_edicao_>/<_grupo_>', methods=["GET"])
+@app.route('/ficha_jogos/<_competicao_>/<int:_edicao_>/<_grupo_>/<_fase_>/', methods=["GET"])
+def r_ficha_jogo(_competicao_, _edicao_, _grupo_ = 0, _fase_ = 0, _rodada_ = 0, _id_jogo_ = 0):
+    partidas_ = pe.partidas_1_completo(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_, grupo = _grupo_, fase = _fase_, rodada = _rodada_, id_jogo = _id_jogo_)
     return jsonify(partidas_)
 
 
 
 @app.route('/classificacao/<_competicao_>/', methods=["GET"])
-def r_classificacao_geral(_competicao_):
-    classificacao_ = pe.classificacao(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao'],
-                                      ano = 0, grupo = 0, fase = 0, vitoria = 3, empate_sem_gols = 1, empate_com_gols = 1, clube = 0)
-    return jsonify(classificacao_.astype(str).to_dict('records'))
+@app.route('/classificacao/<_competicao_>/<int:_edicao_>/', methods=["GET"])
+@app.route('/classificacao/<_competicao_>/<int:_edicao_>/<_grupo_>/', methods=["GET"])
+def r_classificacao_grupo(_competicao_, _edicao_ = 0, _grupo_ = 0):
+    classificacao_ = pe.classificacao(competicao = pe.codigo_competicao(_competicao_),
+                                      ano = _edicao_, grupo = _grupo_, fase = 0, vitoria = 3, empate_sem_gols = 1, empate_com_gols = 1, clube = 0)
+    return jsonify(classificacao_.to_dict('records'))
 
 
 
-@app.route('/classificacao/<_competicao_>/<_edicao_>', methods=["GET"])
-@app.route('/classificacao/<_competicao_>/<_edicao_>/', methods=["GET"])
-def r_classificacao_geral_ano(_competicao_, _edicao_):
-    classificacao_ = pe.classificacao(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao'],
-                                      ano = int(_edicao_), grupo = 0, fase = 0, vitoria = 3, empate_sem_gols = 1, empate_com_gols = 1, clube = 0)    
-    return jsonify(classificacao_.astype(str).to_dict('records'))
-
-
-
-
-@app.route('/classificacao/<_competicao_>/<_edicao_>/<_grupo_>', methods=["GET"])
-def r_classificacao_grupo(_competicao_, _edicao_, _grupo_):
-    classificacao_ = pe.classificacao(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao'],
-                                      ano = int(_edicao_), grupo = _grupo_, fase = 0, vitoria = 3, empate_sem_gols = 1, empate_com_gols = 1, clube = 0)
-    return jsonify(classificacao_.astype(str).to_dict('records'))
-
-
-
-
-@app.route('/participacoes/<_competicao_>/<_edicao_>', methods=["GET"])
-@app.route('/participacoes/<_competicao_>/<_edicao_>/', methods=["GET"])
-def r_clubes_participantes(_competicao_, _edicao_):
-    dados_participacoes_ = pe.participacoes(competicao = pe.lista_competicoes[pe.lista_competicoes['codigo'] == _competicao_].reset_index().at[0, 'competicao']
-                                            , ano = int(_edicao_))
+@app.route('/participantes/<_competicao_>/', methods=["GET"])
+@app.route('/participantes/<_competicao_>/<int:_edicao_>/', methods=["GET"])
+def r_clubes_participantes(_competicao_, _edicao_ = 0):
+    dados_participacoes_ = pe.participacoes(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_)
     return jsonify(dados_participacoes_.to_dict('records'))
+
+
+
+@app.route('/campeoes/<_competicao_>/', methods=["GET"])
+@app.route('/campeoes/<_competicao_>/<int:_edicao_>/', methods=["GET"])
+def r_campeoes(_competicao_ = 0, _edicao_ = 0):
+    campeoes_ = pe.campeoes(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_)
+    return jsonify(campeoes_.to_dict('records'))
+
+
+
 
 
 

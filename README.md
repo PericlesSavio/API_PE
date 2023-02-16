@@ -5,8 +5,10 @@ API com os dados históricos do futebol pernambucano.
 
 * [/jogos/<_competicao_>/<_edicao_>](/jogos/ne/1994)
 * [/ficha_jogos/<_competicao_>/<_edicao_>](/ficha_jogos/ne/1994)
-* [/classificacao/<_competicao_>/](/classificacao/ne)
-
+* [/classificacao/<_competicao_>](/classificacao/ne)
+* [/classificacao/<_competicao_>/<_edicao_>](/classificacao/ne/1994)
+* [/classificacao/<_competicao_>/<_edicao_>/<_grupo_>](/classificacao/ne/1994/A)
+* [/participantes/<_competicao_>/<_edicao_>](/participantes/ne/1994)
 
 ```json
 {

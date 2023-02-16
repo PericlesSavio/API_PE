@@ -1,18 +1,21 @@
 import pandas as pd
 
-lista_partidas = pd.read_excel('dados/dados.xlsx', sheet_name='Jogos')
-lista_partidas['PARTIDA_DATA'] = pd.to_datetime(lista_partidas['PARTIDA_DATA']).dt.date
 lista_clubes = pd.read_excel('dados/dados.xlsx', sheet_name='Clubes')
 lista_estadios = pd.read_excel('dados/dados.xlsx', sheet_name='Estádios')
 lista_observacoes = pd.read_excel('dados/dados.xlsx', sheet_name='Observações')
 lista_jogadores = pd.read_excel('dados/dados.xlsx', sheet_name='Jogadores')
 lista_gols = pd.read_excel('dados/dados.xlsx', sheet_name='Artilharia')
+lista_competicoes = pd.read_excel('dados/dados.xlsx', sheet_name='Competições')
 
 
 lista_campeoes = pd.read_excel('dados/dados.xlsx', sheet_name='Campeões')
 lista_colocacoes = pd.read_excel('dados/dados.xlsx', sheet_name='Posições')
 lista_mundanca_clube = pd.read_excel('dados/dados.xlsx', sheet_name='Mudanças')
-lista_competicoes = pd.read_excel('dados/dados.xlsx', sheet_name='Competições')
+
+
+
+def codigo_competicao(_competicao_):
+    return lista_competicoes[lista_competicoes['COMPETICAO_ID'] == _competicao_].reset_index().at[0, 'COMPETICAO']
 
 
 def gol_string(value):
@@ -23,11 +26,13 @@ def gol_string(value):
     else:
         return value   
 
+
 def v(row):
     if row['PARTIDA_GOL_M'] > row['PARTIDA_GOL_V']:
         return 1
     else:
         return 0
+
 
 def e(row):
     if row['PARTIDA_GOL_M'] == row['PARTIDA_GOL_V']:
@@ -35,11 +40,13 @@ def e(row):
     else:
         return 0
 
+
 def d(row):
     if row['PARTIDA_GOL_M'] < row['PARTIDA_GOL_V']:
         return 1
     else:
         return 0
+
 
 def gp(value):
     if pd.isna(value):
@@ -49,6 +56,7 @@ def gp(value):
     else:
         return value
 
+
 def gp_gc(value):
     if pd.isna(value):
         return 0
@@ -57,6 +65,9 @@ def gp_gc(value):
     else:
         return value
 
+
+lista_partidas = pd.read_excel('dados/dados.xlsx', sheet_name='Jogos')
+#lista_partidas['PARTIDA_DATA'] = pd.to_datetime(lista_partidas['PARTIDA_DATA']).dt.date
 lista_partidas['PARTIDA_GOL_M_STR'] = lista_partidas['PARTIDA_GOL_M'].apply(gol_string)
 lista_partidas['PARTIDA_GOL_V_STR'] = lista_partidas['PARTIDA_GOL_V'].apply(gol_string)
 lista_partidas['J'] = 1
@@ -165,31 +176,33 @@ def classificacao(competicao = 0, ano = 0, grupo = 0, fase = 0, vitoria = 3, emp
     return classificacao
 
 
-def participacoes(ano, competicao):
-
+def participacoes(competicao = 0, ano = 0):
     lista_mandantes = lista_partidas[['PARTIDA_MANDANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']].groupby(['PARTIDA_MANDANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']).sum().reset_index()
     lista_mandantes.columns = ['CLUBE', 'ANO', 'COMPETICAO']
     lista_visitantes = lista_partidas[['PARTIDA_VISITANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']].groupby(['PARTIDA_VISITANTE', 'PARTIDA_ANO', 'PARTIDA_COMPETICAO']).sum().reset_index()
     lista_visitantes.columns = ['CLUBE', 'ANO', 'COMPETICAO']
     participacoes = pd.concat([lista_mandantes, lista_visitantes])
     participacoes = participacoes[participacoes['COMPETICAO'] == competicao].groupby(['CLUBE', 'ANO']).sum(numeric_only=True).reset_index()
-    clubes_participacoes = participacoes[participacoes['ANO'] <= ano]
 
+    clubes_participacoes = participacoes[participacoes['ANO'] <= ano] if ano != 0 else participacoes
     n_participacoes = pd.DataFrame(clubes_participacoes['CLUBE'].value_counts()).reset_index()
     n_participacoes.columns = ['CLUBE', 'PARTICIPACOES']
 
     participantes = pd.merge(left=clubes_participacoes, right=n_participacoes, on='CLUBE', how='left')
-    participantes = participantes[participantes['ANO'] == ano]
+    participantes = participantes[participantes['ANO'] == ano] if ano != 0 else participantes
     participantes = participantes[['CLUBE', 'PARTICIPACOES', 'ANO']]
-
     participantes = pd.merge(left=participantes, right=lista_clubes, on='CLUBE', how='left').sort_values(['CLUBE'])
     participantes = pd.merge(left=participantes, right=lista_mundanca_clube, left_on='CLUBE_NOME_COMPLETO', right_on='MUDANCA_NOME_ATUAL', how='left').fillna('')
 
-
+    if ano == 0:
+        participantes = participantes.drop(columns=['ANO']).drop_duplicates()
     return participantes
 
 
-
+def campeoes(competicao = 0, ano = 0):
+    campeoes = lista_campeoes[lista_campeoes['COMPETICAO'] == competicao] if competicao != 0 else lista_campeoes
+    campeoes = campeoes[campeoes['COMPETICAO_ANO'] == ano] if ano != 0 else campeoes
+    return campeoes
 
 
 
