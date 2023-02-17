@@ -62,7 +62,36 @@ def r_campeoes(_competicao_ = 0, _edicao_ = 0):
 
 
 
+@app.route('/colocacao/<_competicao_>/<int:_edicao_>/', methods=["GET"])
+def r_colocacao(_competicao_ = 0, _edicao_ = 0):
+    colocacao_ = pe.colocacao(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_)
+    return jsonify(colocacao_.to_dict('records'))
 
+
+
+@app.route('/grupos_cruzados/<_competicao_>/<int:_edicao_>/<_grupo_>/', methods=["GET"])
+def r_grupos_cruzados(_competicao_ = 0, _edicao_ = 0, _grupo_ = 0):
+    grupos_cruzados_ = pe.grupos_cruzados(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_, grupo = _grupo_)
+    return jsonify(grupos_cruzados_.to_dict('records'))
+
+
+
+@app.route('/segundos_colocados/<_competicao_>/<int:_edicao_>/', methods=["GET"])
+def r_segundos_colocados(_competicao_ = 0, _edicao_ = 0, _grupo_ = 0):
+    segundos_colocados_ = pe.segundos_colocados(competicao = pe.codigo_competicao(_competicao_), ano = _edicao_)
+    return jsonify(segundos_colocados_.to_dict('records'))
+
+
+
+
+
+
+
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return 'ERRO 404', 404
 
 
 

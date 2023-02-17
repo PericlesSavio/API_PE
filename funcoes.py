@@ -6,12 +6,11 @@ lista_observacoes = pd.read_excel('dados/dados.xlsx', sheet_name='Observações'
 lista_jogadores = pd.read_excel('dados/dados.xlsx', sheet_name='Jogadores')
 lista_gols = pd.read_excel('dados/dados.xlsx', sheet_name='Artilharia')
 lista_competicoes = pd.read_excel('dados/dados.xlsx', sheet_name='Competições')
-
-
+lista_mundanca_clube = pd.read_excel('dados/dados.xlsx', sheet_name='Mudanças')
 lista_campeoes = pd.read_excel('dados/dados.xlsx', sheet_name='Campeões')
 lista_colocacoes = pd.read_excel('dados/dados.xlsx', sheet_name='Posições')
-lista_mundanca_clube = pd.read_excel('dados/dados.xlsx', sheet_name='Mudanças')
-
+lista_gruposcruzados = pd.read_excel('dados/dados.xlsx', sheet_name='Grupos Cruzados')
+lista_segundoscolocados = pd.read_excel('dados/dados.xlsx', sheet_name='Segundos Colocados')
 
 
 def codigo_competicao(_competicao_):
@@ -46,15 +45,6 @@ def d(row):
         return 1
     else:
         return 0
-
-
-def gp(value):
-    if pd.isna(value):
-        return 0
-    elif isinstance(value, float):
-        return str(int(value))
-    else:
-        return value
 
 
 def gp_gc(value):
@@ -203,6 +193,25 @@ def campeoes(competicao = 0, ano = 0):
     campeoes = lista_campeoes[lista_campeoes['COMPETICAO'] == competicao] if competicao != 0 else lista_campeoes
     campeoes = campeoes[campeoes['COMPETICAO_ANO'] == ano] if ano != 0 else campeoes
     return campeoes
+
+
+def colocacao(competicao = 0, ano = 0):
+    colocacoes = lista_colocacoes[lista_colocacoes['POSICAO_COMPETICAO'] == competicao] if competicao != 0 else lista_colocacoes
+    colocacoes = lista_colocacoes[lista_colocacoes['POSICAO_ANO'] == ano] if ano != 0 else colocacoes
+    return colocacoes
+
+
+def grupos_cruzados(competicao = 0, ano = 0, grupo = 0):
+    grupos_cruzados = lista_gruposcruzados[lista_gruposcruzados['GRUPOS-CRUZADOS_COMPETICAO'] == competicao] if competicao != 0 else lista_gruposcruzados
+    grupos_cruzados = grupos_cruzados[grupos_cruzados['GRUPOS-CRUZADOS_ANO'] == ano] if ano != 0 else grupos_cruzados
+    grupos_cruzados = grupos_cruzados[grupos_cruzados['GRUPOS-CRUZADOS_GRUPO'] == grupo]# if grupo != 0 else grupos_cruzados
+    return grupos_cruzados
+
+
+def segundos_colocados(competicao, ano):
+    segundos_colocados = lista_segundoscolocados[lista_segundoscolocados['SEGUNDOS-COLOCADOS_COMPETICAO'] == competicao]
+    segundos_colocados = segundos_colocados[segundos_colocados['SEGUNDOS-COLOCADOS_ANO'] == ano]
+    return segundos_colocados
 
 
 
