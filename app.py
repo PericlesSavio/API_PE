@@ -39,9 +39,15 @@ def r_ficha_jogo(_competicao_, _edicao_, _grupo_ = 0, _fase_ = 0, _rodada_ = 0, 
 @app.route('/classificacao/<_competicao_>/', methods=["GET"])
 @app.route('/classificacao/<_competicao_>/<int:_edicao_>/', methods=["GET"])
 @app.route('/classificacao/<_competicao_>/<int:_edicao_>/<_grupo_>/', methods=["GET"])
-def r_classificacao_grupo(_competicao_, _edicao_ = 0, _grupo_ = 0):
-    classificacao_ = pe.classificacao(competicao = pe.codigo_competicao(_competicao_),
-                                      ano = _edicao_, grupo = _grupo_, fase = 0, vitoria = 3, empate_sem_gols = 1, empate_com_gols = 1, clube = 0)
+@app.route('/classificacao/<_competicao_>/<int:_edicao_>/<_grupo_>/<_fase_>', methods=["GET"])
+def r_classificacao_grupo(_competicao_, _edicao_ = 0, _grupo_ = 0, _fase_ = 0):
+    competicao = pe.codigo_competicao(_competicao_)
+    pts_vitoria = pe.pts_competicao(_competicao_, _edicao_).reset_index().at[0, 'COMPETICAO_PTS_VITORIA']
+    pts_empate_sem_gols = pe.pts_competicao(_competicao_, _edicao_).reset_index().at[0, 'COMPETICAO_PTS_EMPATE_SEM_GOLS']
+    pts_empate_com_gols = pe.pts_competicao(_competicao_, _edicao_).reset_index().at[0, 'COMPETICAO_PTS_EMPATE_COM_GOLS']
+    classificacao_ = pe.classificacao(competicao = competicao,
+                                      ano = _edicao_, grupo = _grupo_, fase = _fase_, vitoria = pts_vitoria,
+                                      empate_sem_gols = pts_empate_sem_gols, empate_com_gols = pts_empate_com_gols, clube = 0)
     return jsonify(classificacao_.to_dict('records'))
 
 
