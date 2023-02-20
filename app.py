@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import pandas as pd
 import funcoes as pe
 import markdown
@@ -90,7 +90,10 @@ def r_segundos_colocados(_competicao_ = 0, _edicao_ = 0, _grupo_ = 0):
 
 
 
-
+@app.route('/clube/<_clube_>/', methods=["GET"])
+def r_clube(_clube_):
+    clube_ = pe.lista_clubes[pe.lista_clubes['CLUBE_ID'] == _clube_]
+    return jsonify(clube_.to_dict('records'))
 
 
 
@@ -99,6 +102,26 @@ def r_segundos_colocados(_competicao_ = 0, _edicao_ = 0, _grupo_ = 0):
 def page_not_found(error):
     return 'ERRO 404', 404
 
+
+@app.route('/minha-rota')
+def minha_funcao():
+    parametro1 = request.args.get('parametro1')
+    parametro2 = request.args.get('parametro2')
+    return f"Os valores recebidos foram: parametro1={parametro1} e parametro2={parametro2}"
+
+@app.route('/minha-rota2')
+def minha_funcao2(parametro1='peres-pe'):
+
+    df = pe.lista_clubes
+    parametro1 = request.args.get('parametro1')
+    parametro2 = request.args.get('parametro2')
+
+    # Filtra o DataFrame com base nos parâmetros recebidos
+    filtered_df = df.query(f"CLUBE_ID == '{parametro1}'")
+
+    # Retorna a representação em formato HTML do DataFrame filtrado
+    #return filtered_df.to_html()
+    return jsonify(filtered_df.to_dict('records'))
 
 
 if __name__ == "__main__":
