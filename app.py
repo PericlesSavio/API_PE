@@ -103,25 +103,7 @@ def page_not_found(error):
     return 'ERRO 404', 404
 
 
-@app.route('/minha-rota')
-def minha_funcao():
-    parametro1 = request.args.get('parametro1')
-    parametro2 = request.args.get('parametro2')
-    return f"Os valores recebidos foram: parametro1={parametro1} e parametro2={parametro2}"
 
-@app.route('/minha-rota2')
-def minha_funcao2(parametro1='peres-pe'):
-
-    df = pe.lista_clubes
-    parametro1 = request.args.get('parametro1')
-    parametro2 = request.args.get('parametro2')
-
-    # Filtra o DataFrame com base nos parâmetros recebidos
-    filtered_df = df.query(f"CLUBE_ID == '{parametro1}'")
-
-    # Retorna a representação em formato HTML do DataFrame filtrado
-    #return filtered_df.to_html()
-    return jsonify(filtered_df.to_dict('records'))
 
 
 if __name__ == "__main__":
