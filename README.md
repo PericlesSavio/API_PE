@@ -1,5 +1,5 @@
 # API_PE
-API com os dados históricos do futebol pernambucano.
+API com os dados históricos do futebol pernambucano. 
 
 ### Endpoints
 
@@ -8,7 +8,8 @@ API com os dados históricos do futebol pernambucano.
 * [/classificacao/<_competicao_>](/classificacao/ne)
 * [/classificacao/<_competicao_>/<_edicao_>](/classificacao/ne/1994)
 * [/classificacao/<_competicao_>/<_edicao_>/<_grupo_>](/classificacao/ne/1994/A)
-* [/participantes/<_competicao_>/<_edicao_>](/participantes/ne/1994)
+* [/clube/<_clube_>/](/clube/sport-pe/)
+
 
 ```json
 {
