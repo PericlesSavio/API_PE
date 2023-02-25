@@ -2,7 +2,7 @@
 API com os dados históricos do futebol pernambucano.
 
 ### URL (temporário)
-* http://api-pe.eba-hvignmd7.us-east-2.elasticbeanstalk.com/
+* [http://api-pe.eba-hvignmd7.us-east-2.elasticbeanstalk.com/](http://api-pe.eba-hvignmd7.us-east-2.elasticbeanstalk.com/)
 
 ### Endpoints
 
